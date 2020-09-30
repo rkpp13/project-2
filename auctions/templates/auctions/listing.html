@@ -1,0 +1,79 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container">
+    <h2>Listing: {{auction.title}} {% if not active %}[closed]{% endif %}</h2>
+
+    {% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'error' %}
+        <div class="alert alert-danger alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Error!</strong> {{ message|safe }}
+        </div>
+        {% else %}
+        <div class="alert alert-success alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>Success!</strong> {{ message }}
+        </div>
+        {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    {% if watchlist %}
+        <a href="{% url 'modify' auction.id %}"><span class="badge badge-secondary"><i class="fa fa-eye"></i> Add to Watchlist</span></a>
+    {% else %}
+        <a href="{% url 'modify' auction.id %}"><span class="badge badge-danger"><i class="fa fa-eye-slash"></i> Remove from Watchlist</span></a>
+    {% endif %}
+
+    <br><img src="{{auction.image}}" alt="{{auction.title}}" style="height:500px;width:550px;"><br>
+    <br><p>{{auction.description}}</p>
+
+    <hr>
+    {% if active %}
+        <h3>{% if bids_yet %}Current Bid: ${{lastbid}}{% else %}Starting Bid: ${{auction.startingbid}}{% endif %}</h3>
+        <small>({{auction.bids.all|length}}) bids so far.
+            {% if lastbidder == request.user %}Your bid is the current bid.{% endif %}
+        </small>
+    {% endif %}
+
+    {% if not owner and active %}
+        <form action="{% url 'bid' auction.id %}" method="POST" autocomplete="off">
+            {% csrf_token %}
+            <div class="form-group">{{ bidding__form.bid }}</div>
+            <button type="submit" class="btn btn-primary">Place Bid</button>
+        </form>
+    {% elif active %}
+        <br><a href="{% url 'close' auction.id %}"><button type="button" class="btn btn-danger">Close Auction</button></a><br>
+    {% elif lastbidder == request.user %}
+        <h4>You <kbd>won</kbd> the auction with ${{lastbid}}!</h4>
+    {% else %}
+        <h4>The auction was closed at ${{lastbid}}!</h4>
+    {% endif %}
+
+    <br>
+    <h3>Details</h3>
+    <ul>
+        <li>Listed by: {{auction.owner}}</li>
+        <li>Category: {% if auction.category != 'None' %}<a href="{% url 'c' auction.category %}">{{auction.category}}</a>{% else %}No Category Listed{% endif %}</li>
+        <li>Created: {{auction.datetime}}</li>
+    </ul>
+
+    <hr>
+    <form action="{% url 'comment' auction.id %}" method="POST" autocomplete="off">
+        {% csrf_token %}
+        <div class="form-group">{{ comment__form }}</div>
+        <button type="submit" class="btn btn-dark">Comment</button>
+    </form>
+
+    <br>
+    {% for comment in comments %}
+        <div class="card">
+            <div class="card-header">By <b>{{comment.user}}</b> at {{comment.timestamp|date:"f A | j F"}}</div>
+            <div class="card-body">{{comment.comment}}</div>
+        </div><br>
+    {% empty %}
+        <p>No comments yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

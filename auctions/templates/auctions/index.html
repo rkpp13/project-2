@@ -1,0 +1,23 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="row">
+    {% for auction in auctions %}
+    <div class="col-sm-3 mb-4">
+        <div class="card" style="height:590px">
+            <img class="card-img-top" src="{{auction.image}}" alt="Card image" style="height:330px">
+
+            <div class="card-body" style="overflow:hidden">
+                <h5 class="card-title"><a class="title-link" href="{% url 'listing' auction.id %}">{{auction.title}}</a></h5>
+                <p class="card-text" style="font-size:smaller">{{auction.description}}</p>
+            </div>
+
+            <div class="card-footer text-muted">
+                <b>Bid: ${% if auction.bids.all %}{{ auction.bids.last.bid }}{% else %}{{ auction.startingbid }}{% endif %}</b>
+            </div>
+            <div class="card-footer text-muted"><small>Created: {{auction.datetime}}</small></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
